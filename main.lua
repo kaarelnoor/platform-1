@@ -5,6 +5,24 @@ function checkCollision(a, b)
            a.y + a.h > b.y
 end
 
+function loadLevel(n)
+    if n == 1 then
+        obstacleSpeed = 0
+        obstacle.y = 350
+        obstacle.h = 150
+    elseif n == 2 then
+        obstacleSpeed = 150
+        obstacle.y = 350
+        obstacle.h = 150
+    elseif n == 3 then
+        obstacleSpeed = 250
+        obstacle.y = 350
+        obstacle.h = 150
+    end
+    obstacleVisible = true
+    obstacleTimer = 0
+end
+
 function love.conf(t)
     t.window.title = "PLATFORM 1"
 end
@@ -42,10 +60,14 @@ function love.load()
     h = 30,
     collected = false
 }
-    gravity = 1000
+
+    gravity = 1100
     jump = -600
     speedWalk = 300
+    obstacleSpeed = 0
     platformNumber = 1
+    obstacleTimer = 0
+    obstacleVisible = true
 end
 
 function love.update(dt)
@@ -62,7 +84,44 @@ function love.update(dt)
         player.inFloor = false
     end
 
-    if checkCollision(player, obstacle) and oldY + player.h <= obstacle.y and platformNumber > 0 then
+    if obstacleSpeed ~= 0 then
+
+    obstacle.y = obstacle.y + obstacleSpeed * dt
+    obstacle.h = obstacle.h - obstacleSpeed * dt
+
+    if obstacle.y < 300 then
+    obstacle.y = 300
+    obstacle.h = floorY - 300
+    obstacleSpeed = -obstacleSpeed
+end
+
+    if obstacle.y >= floorY then
+    obstacle.y = floorY
+    obstacle.h = 0
+    obstacleSpeed = 0
+    obstacleVisible = false
+    obstacleTimer = 0
+end
+end
+
+    if player.y + player.h >= obstacle.y - 5 and
+       player.y + player.h <= obstacle.y + 20 and
+       player.x + player.w > obstacle.x and
+       player.x < obstacle.x + obstacle.w then
+        player.y = obstacle.y - player.h
+        player.speedY = 0
+        player.inFloor = true
+end
+
+    if not obstacleVisible then
+    obstacleTimer = obstacleTimer + dt
+    if obstacleTimer >= 2 then
+        obstacleVisible = true
+        obstacleSpeed = -150
+    end
+end
+
+    if checkCollision(player, obstacle) and obstacleVisible and oldY + player.h <= obstacle.y and platformNumber > 0 then
     player.y = obstacle.y - player.h
     player.speedY = 0
     player.inFloor = true
@@ -78,32 +137,44 @@ end
         player.x = player.x + speedWalk * dt
     end
 
-    if checkCollision(player, obstacle) and oldX + player.w <= obstacle.x and platformNumber > 0 then
+    if checkCollision(player, obstacle) and obstacleVisible and oldX + player.w <= obstacle.x and platformNumber > 0 then
     player.x = obstacle.x - player.w
 end
 
-    if checkCollision(player, obstacle) and oldX >= obstacle.x + obstacle.w and platformNumber > 0  then
+    if checkCollision(player, obstacle) and obstacleVisible and oldX >= obstacle.x + obstacle.w and platformNumber > 0  then
     player.x = obstacle.x + obstacle.w
 end
 
     local oldLocalX = 100
 
-    if player.x > 800 then
+    if player.x + player.w > 800 and not star.collected then
+    player.x = 800 - player.w
+end
+
+    if player.x > 800 and star.collected then
         player.x = oldLocalX 
         platformNumber = platformNumber + 1
         star.collected = false
+        loadLevel(platformNumber)
+        obstacle.y = floorY - obstacle.h
+        obstacleVisible = true
+        obstacleTimer = 0
     end
 
     if player.x < 0 then
         player.x = 750
         platformNumber = platformNumber - 1
         star.collected = false
+        loadLevel(platformNumber)
+        obstacle.y = 350
+        obstacle.h = 150
+        obstacleVisible = true
+        obstacleTimer = 0
     end
 
     if not star.collected and checkCollision(player, star) then
     star.collected = true
 end
-
 end
 
 function love.keypressed(key)
@@ -133,10 +204,9 @@ function love.draw()
     love.graphics.line(px, py + 42, player.x, py + player.h) -- left leg
     love.graphics.line(px, py + 42, player.x + player.w, py + player.h) -- right leg
 
-    if platformNumber > 0 then
+    if platformNumber > 0 and obstacleVisible then
     love.graphics.rectangle("fill", obstacle.x, obstacle.y, obstacle.w, obstacle.h)
     end
-
 
     if platformNumber > 0 and not star.collected then
     love.graphics.setColor(1, 0.84, 0)
@@ -152,7 +222,7 @@ function love.draw()
     if platformNumber > 0 and star.collected then
         love.graphics.setFont(fontStar)
         love.graphics.setColor(1, 0.84, 0)
-        love.graphics.print("Star Collected", 50, 50)
+        love.graphics.print("Star Collected!", 50, 50)
     end
 
     love.graphics.setColor(0, 0, 0)
