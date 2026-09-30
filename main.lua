@@ -57,6 +57,10 @@ function love.load()
     floorY = 500
     floorWidth = 800
     floorHeight = 100
+    floorVisible = true
+    floorGone = false
+    floorDelayTimer = 0
+    floorGoneTimer = 0
     obstacle = {
     x = 400,
     y = 350,
@@ -86,7 +90,9 @@ function love.update(dt)
     player.speedY = player.speedY + gravity * dt
     player.y = player.y + player.speedY * dt
 
-    if player.y + player.h > floorY then
+    oldInFloor = player.inFloor
+
+    if floorVisible and player.y + player.h > floorY then
         player.y = floorY - player.h
         player.speedY = 0
         player.inFloor = true
@@ -98,6 +104,24 @@ function love.update(dt)
     obstacleActive = not player.inFloor
     else
     obstacleActive = true
+    end
+
+    if oldInFloor and player.inFloor and floorVisible and platformNumber == 5 then
+        floorDelayTimer = floorDelayTimer + dt
+        if floorDelayTimer >= 0.5 then
+            floorGone = true
+            floorVisible = false
+            floorDelayTimer = 0
+        end
+    end
+
+    if floorGone then
+        floorGoneTimer = floorGoneTimer + dt
+        if floorGoneTimer >= 0.5 then
+            floorVisible = true
+            floorGone = false
+            floorGoneTimer = 0
+        end
     end
 
     if obstacleSpeed ~= 0 then
@@ -188,9 +212,18 @@ end
         obstacleTimer = 0
     end
 
-    if not star.collected and checkCollision(player, star) then
+    if not star.collected and obstacleActive and checkCollision(player, star) then
     star.collected = true
 end
+
+    if player.y > 600 then
+        player.x = 100
+        player.y = 435
+        player.speedY = 0
+        floorVisible = true
+        floorGone = false
+        floorDelayTimer = 0
+    end
 end
 
 function love.keypressed(key)
@@ -224,7 +257,7 @@ function love.draw()
     love.graphics.rectangle("fill", obstacle.x, obstacle.y, obstacle.w, obstacle.h)
     end
 
-    if platformNumber > 0 and not star.collected then
+    if platformNumber > 0 and not star.collected and obstacleActive then
     love.graphics.setColor(1, 0.84, 0)
     
     love.graphics.polygon("fill",
@@ -255,6 +288,8 @@ function love.draw()
 
     love.graphics.setColor(0, 0, 0)
 
-    love.graphics.rectangle("fill", floorX, floorY, floorWidth, floorHeight)
+    if floorVisible then
+        love.graphics.rectangle("fill", floorX, floorY, floorWidth, floorHeight)
+    end
 
 end
