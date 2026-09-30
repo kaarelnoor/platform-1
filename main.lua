@@ -10,16 +10,26 @@ function loadLevel(n)
         obstacleSpeed = 0
         obstacle.y = 350
         obstacle.h = 150
+        obstacleVisible = true
     elseif n == 2 then
         obstacleSpeed = 150
         obstacle.y = 350
         obstacle.h = 150
+        obstacleVisible = true
     elseif n == 3 then
         obstacleSpeed = 250
         obstacle.y = 350
         obstacle.h = 150
+        obstacleVisible = true
+    elseif n == 4 then
+        obstacleSpeed = 0
+        obstacle.y = 350
+        obstacle.h = 150
+        obstacleVisible = true
+    else
+        obstacleSpeed = 0
+        obstacleVisible = false
     end
-    obstacleVisible = true
     obstacleTimer = 0
 end
 
@@ -84,6 +94,12 @@ function love.update(dt)
         player.inFloor = false
     end
 
+    if platformNumber == 4 then
+    obstacleActive = not player.inFloor
+    else
+    obstacleActive = true
+    end
+
     if obstacleSpeed ~= 0 then
 
     obstacle.y = obstacle.y + obstacleSpeed * dt
@@ -121,7 +137,7 @@ end
     end
 end
 
-    if checkCollision(player, obstacle) and obstacleVisible and oldY + player.h <= obstacle.y and platformNumber > 0 then
+    if checkCollision(player, obstacle) and obstacleVisible and obstacleActive and oldY + player.h <= obstacle.y and platformNumber > 0 then
     player.y = obstacle.y - player.h
     player.speedY = 0
     player.inFloor = true
@@ -137,11 +153,11 @@ end
         player.x = player.x + speedWalk * dt
     end
 
-    if checkCollision(player, obstacle) and obstacleVisible and oldX + player.w <= obstacle.x and platformNumber > 0 then
+    if checkCollision(player, obstacle) and obstacleVisible and obstacleActive and oldX + player.w <= obstacle.x and platformNumber > 0 then
     player.x = obstacle.x - player.w
 end
 
-    if checkCollision(player, obstacle) and obstacleVisible and oldX >= obstacle.x + obstacle.w and platformNumber > 0  then
+    if checkCollision(player, obstacle) and obstacleVisible and obstacleActive and oldX >= obstacle.x + obstacle.w and platformNumber > 0  then
     player.x = obstacle.x + obstacle.w
 end
 
@@ -204,7 +220,7 @@ function love.draw()
     love.graphics.line(px, py + 42, player.x, py + player.h) -- left leg
     love.graphics.line(px, py + 42, player.x + player.w, py + player.h) -- right leg
 
-    if platformNumber > 0 and obstacleVisible then
+    if platformNumber > 0 and obstacleVisible and obstacleActive then
     love.graphics.rectangle("fill", obstacle.x, obstacle.y, obstacle.w, obstacle.h)
     end
 
