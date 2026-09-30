@@ -6,7 +6,7 @@ function checkCollision(a, b)
 end
 
 function loadLevel(n)
-    if n == 1 then
+    if n == 1 or n > 3 then
         obstacleSpeed = 0
         obstacle.y = 350
         obstacle.h = 150
@@ -223,6 +223,18 @@ function love.draw()
         love.graphics.setFont(fontStar)
         love.graphics.setColor(1, 0.84, 0)
         love.graphics.print("Star Collected!", 50, 50)
+    end
+
+    if platformNumber < 1 then
+        love.graphics.setFont(fontStar)
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.print("WHERE ARE YOU GOING?", 150, 200)
+    end
+
+    if platformNumber < 1 and star.collected then
+        love.graphics.setFont(fontStar)
+        love.graphics.setColor(1, 0.84, 0)
+        love.graphics.print("Invisible Star Collected!", 50, 50)
     end
 
     love.graphics.setColor(0, 0, 0)
