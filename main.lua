@@ -82,9 +82,13 @@ function love.load()
     platformNumber = 1
     obstacleTimer = 0
     obstacleVisible = true
+
+    paused = false
 end
 
 function love.update(dt)
+
+    if not paused then
     oldY = player.y
 
     player.speedY = player.speedY + gravity * dt
@@ -225,10 +229,14 @@ end
         floorDelayTimer = 0
     end
 end
+end
 
 function love.keypressed(key)
-    if (key == "space" or key == "up" or key == "w") and player.inFloor then
+    if (key == "space" or key == "up" or key == "w") and player.inFloor and not paused then
         player.speedY = jump
+    end
+    if key == "p" then
+    paused = not paused
     end
 end
 
@@ -291,5 +299,17 @@ function love.draw()
     if floorVisible then
         love.graphics.rectangle("fill", floorX, floorY, floorWidth, floorHeight)
     end
+
+    if paused then
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.rectangle("fill", 0, 0, 800, 600)
+    
+    love.graphics.setFont(font)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("PAUSED", 250, 250)
+    
+    love.graphics.setFont(fontStar)
+    love.graphics.print("Press P to resume", 300, 350)
+end
 
 end
