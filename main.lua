@@ -6,17 +6,17 @@ function checkCollision(a, b)
 end
 
 function loadLevel(n)
-    if n == 1 or n > 3 then
+    if n == 1 then
         obstacleSpeed = 0
         obstacle.y = 350
         obstacle.h = 150
         obstacleVisible = true
-    elseif n == 2 then
+    elseif n == 2 or n == 7 then
         obstacleSpeed = 150
         obstacle.y = 350
         obstacle.h = 150
         obstacleVisible = true
-    elseif n == 3 then
+    elseif n == 3 or n == 8 then
         obstacleSpeed = 250
         obstacle.y = 350
         obstacle.h = 150
@@ -67,12 +67,10 @@ function love.load()
     w = 100,
     h = 150,
 }
+    
     star = {
-    x = 450,
-    y = 280,
-    w = 30,
-    h = 30,
-    collected = false
+    { x = 450, y = 280, w = 30, h = 30, collected = false, visible = true },
+    { x = 200, y = 400, w = 30, h = 30, collected = false, visible = false },
 }
 
     gravity = 1100
@@ -126,6 +124,10 @@ function love.update(dt)
             floorGone = false
             floorGoneTimer = 0
         end
+    end
+
+    if star[1].collected and platformNumber >= 6 then
+    star[2].visible = true
     end
 
     if obstacleSpeed ~= 0 then
@@ -191,14 +193,21 @@ end
 
     local oldLocalX = 100
 
-    if player.x + player.w > 800 and not star.collected then
+    local allCollected = star[1].collected
+    if platformNumber >= 6 then
+    allCollected = star[1].collected and star[2].collected
+end
+
+    if player.x + player.w > 800 and not allCollected then
     player.x = 800 - player.w
 end
 
-    if player.x > 800 and star.collected then
+    if player.x > 800 and allCollected then
         player.x = oldLocalX 
         platformNumber = platformNumber + 1
-        star.collected = false
+        star[1].collected = false
+        star[2].collected = false
+        star[2].visible = false
         loadLevel(platformNumber)
         obstacle.y = floorY - obstacle.h
         obstacleVisible = true
@@ -208,7 +217,9 @@ end
     if player.x < 0 then
         player.x = 750
         platformNumber = platformNumber - 1
-        star.collected = false
+        star[1].collected = false
+        star[2].collected = false
+        star[2].visible = false
         loadLevel(platformNumber)
         obstacle.y = 350
         obstacle.h = 150
@@ -216,8 +227,11 @@ end
         obstacleTimer = 0
     end
 
-    if not star.collected and obstacleActive and checkCollision(player, star) then
-    star.collected = true
+    if not star[1].collected and obstacleActive and checkCollision(player, star[1]) then
+    star[1].collected = true
+end
+    if star[2].visible and not star[2].collected and checkCollision(player, star[2]) then
+    star[2].collected = true
 end
 
     if player.y > 600 then
@@ -265,18 +279,29 @@ function love.draw()
     love.graphics.rectangle("fill", obstacle.x, obstacle.y, obstacle.w, obstacle.h)
     end
 
-    if platformNumber > 0 and not star.collected and obstacleActive then
+    if platformNumber > 0 and not star[1].collected and obstacleActive then
     love.graphics.setColor(1, 0.84, 0)
     
     love.graphics.polygon("fill",
-    star.x + star.w/2, star.y,
-    star.x + star.w,   star.y + star.h/2,
-    star.x + star.w/2, star.y + star.h,
-    star.x,            star.y + star.h/2
+    star[1].x + star[1].w/2, star[1].y,
+    star[1].x + star[1].w,   star[1].y + star[1].h/2,
+    star[1].x + star[1].w/2, star[1].y + star[1].h,
+    star[1].x,            star[1].y + star[1].h/2
 )
     end
 
-    if platformNumber > 0 and star.collected then
+    if star[2].visible and not star[2].collected then
+    love.graphics.setColor(1, 0.84, 0)
+    
+    love.graphics.polygon("fill",
+    star[2].x + star[2].w/2, star[2].y,
+    star[2].x + star[2].w,   star[2].y + star[2].h/2,
+    star[2].x + star[2].w/2, star[2].y + star[2].h,
+    star[2].x,            star[2].y + star[2].h/2
+)
+    end
+
+    if platformNumber > 0 and star[1].collected then
         love.graphics.setFont(fontStar)
         love.graphics.setColor(1, 0.84, 0)
         love.graphics.print("Star Collected!", 50, 50)
@@ -288,7 +313,7 @@ function love.draw()
         love.graphics.print("WHERE ARE YOU GOING?", 150, 200)
     end
 
-    if platformNumber < 1 and star.collected then
+    if platformNumber < 1 and star[1].collected then
         love.graphics.setFont(fontStar)
         love.graphics.setColor(1, 0.84, 0)
         love.graphics.print("Invisible Star Collected!", 50, 50)
